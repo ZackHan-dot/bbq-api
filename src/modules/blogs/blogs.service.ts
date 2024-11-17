@@ -45,7 +45,7 @@ export class BlogsService {
       if (existingTags.length > 0) {
         query.andWhere(
           'blogs.id IN (SELECT blog_id FROM blog_tags WHERE tag_id IN (:...tagIds))',
-          { tagIds: existingTags },
+          { tagIds: existingTags.map((tag) => tag.id) }, // 这里需要明确是id，否则会出现id歧义
         );
       } else {
         // 如果没有找到任何标签，返回空结果

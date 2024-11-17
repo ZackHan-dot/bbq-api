@@ -31,8 +31,14 @@ export class PageBlogParamsDto {
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  tags: string[];
+  @IsInt({ each: true })
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) {
+      return value.map(Number);
+    }
+    return [Number(value)];
+  })
+  tags: number[];
 
   @IsOptional()
   @IsString()
