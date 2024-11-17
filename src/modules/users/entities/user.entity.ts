@@ -20,6 +20,12 @@ export class User {
   password: string;
 
   @Column()
+  nickname: string;
+
+  @Column()
+  avatar: string;
+
+  @Column()
   email: string;
 
   @Column({ name: 'created_at' })

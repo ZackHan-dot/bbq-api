@@ -13,15 +13,13 @@ export class BlogsController {
   @Get()
   async findAll(@Query() pageBlogParamsDto: PageBlogParamsDto) {
     const blogs = await this.blogsService.findAll(pageBlogParamsDto);
-
     const blogEntities = blogs.items.map((blog) => {
-      return {
+      return plainToInstance(QueryBlogsDto, {
         ...blog,
         user: plainToInstance(QueryUserDto, blog.user),
-      };
+      });
     });
-
-    return plainToInstance(QueryBlogsDto, blogEntities);
+    return { ...blogs, items: blogEntities };
   }
 
   @Post('save')
