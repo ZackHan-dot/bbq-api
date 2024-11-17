@@ -14,6 +14,7 @@ export const TypeOrmConfig: TypeOrmModuleOptions = {
   autoLoadEntities: true,
   synchronize: false,
   logging: true,
+  logger: 'advanced-console',
 };
 
 export const RedisConfig: RedisSingleOptions = {
