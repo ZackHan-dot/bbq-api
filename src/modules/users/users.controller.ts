@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body, Put } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Put, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { plainToInstance } from 'class-transformer';
@@ -7,6 +7,12 @@ import { password_hash } from 'src/util/bcrypt';
 import { RoleEnum } from '../roles/roles.enum';
 import { Roles } from '../roles/roles.decorator';
 import { UpdateUserRolesDto } from '../roles/dto/update-user-roles.dto';
+
+interface RequestWithUser extends Request {
+  user: {
+    username: string;
+  };
+}
 
 @Controller('users')
 export class UsersController {
@@ -21,6 +27,13 @@ export class UsersController {
 
   @Get('get/:username')
   findOne(@Param('username') username: string) {
+    const user = this.usersService.findOne(username);
+    return plainToInstance(QueryUserDto, user);
+  }
+
+  @Get('current')
+  getProfile(@Req() request: RequestWithUser) {
+    const { username } = request.user;
     const user = this.usersService.findOne(username);
     return plainToInstance(QueryUserDto, user);
   }
