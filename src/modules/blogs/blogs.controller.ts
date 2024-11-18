@@ -21,6 +21,23 @@ export class BlogsController {
     });
     return { ...blogs, items: blogEntities };
   }
+  @Get('/:userId')
+  async findByUserId(
+    @Param('userId') userId: number,
+    @Query() pageBlogParamsDto: PageBlogParamsDto,
+  ) {
+    const blogs = await this.blogsService.findByUserId(
+      userId,
+      pageBlogParamsDto,
+    );
+    const blogEntities = blogs.items.map((blog) => {
+      return plainToInstance(QueryBlogsDto, {
+        ...blog,
+        user: plainToInstance(QueryUserDto, blog.user),
+      });
+    });
+    return blogEntities;
+  }
 
   @Post('save')
   async create(@Body() createBlogsDto: CreateBlogsDto) {

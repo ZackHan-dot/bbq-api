@@ -71,6 +71,66 @@ export class BlogsService {
     }
   }
 
+  async findByUserId(userId: number, pageBlogParamsDto: PageBlogParamsDto) {
+    const { currentPage, limit, sortBy, sortOrder, tags, title } =
+      pageBlogParamsDto;
+    // 检查排序字段是否存在
+    const validSortFields = ['createdAt', 'updatedAt'];
+    if (sortBy && !validSortFields.includes(sortBy)) {
+      throw new Error('无效的排序字段');
+    }
+    // 构建查询
+    const query = this.blogRepository.createQueryBuilder('blogs');
+    // 筛选指定用户
+    query.andWhere('blogs.user_id = :userId', { userId });
+    // 应用筛选条件
+    if (title) {
+      query.andWhere('blogs.title LIKE :title', { title: `%${title}%` });
+    }
+    if (sortBy) {
+      // 应用排序
+      query.orderBy(`blogs.${sortBy}`, sortOrder);
+    }
+    // 加载关联的标签和用户
+    query.leftJoinAndSelect('blogs.tags', 'tags');
+    query.leftJoinAndSelect('blogs.user', 'user');
+
+    // 设置分页
+    query.skip((currentPage - 1) * limit).take(limit);
+
+    if (tags && tags.length > 0) {
+      const existingTags = await this.tagRepository.find({
+        where: { id: In(tags) },
+      });
+      if (existingTags.length > 0) {
+        query.andWhere(
+          'blogs.id IN (SELECT blog_id FROM blog_tags WHERE tag_id IN (:...tagIds))',
+          { tagIds: existingTags.map((tag) => tag.id) }, // 这里需要明确是id，否则会出现id歧义
+        );
+      } else {
+        // 如果没有找到任何标签，返回空结果
+        return {
+          items: [],
+          currentPage,
+          limit,
+          total: 0,
+        };
+      }
+    }
+    try {
+      const [items, total] = await query.getManyAndCount();
+
+      return {
+        items,
+        currentPage,
+        limit,
+        total,
+      };
+    } catch (error) {
+      throw new Error(`查询博客列表时发生错误: ${error.message}`);
+    }
+  }
+
   async create(createBlogsDto: CreateBlogsDto) {
     const { tags, ...blogData } = createBlogsDto;
     const tagIds = tags || [];
