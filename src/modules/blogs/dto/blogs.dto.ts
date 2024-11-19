@@ -37,7 +37,7 @@ export class CreateBlogsDto {
   @IsBoolean({ message: '是否发布必须为布尔值' })
   published: boolean;
 
-  @IsNotEmpty({ message: '封面图链接不能为空' })
+  @IsOptional()
   @IsString({ message: '封面图链接必须为字符串' })
   @MaxLength(255, { message: '封面图链接长度不能超过255' })
   coverLink: string;
