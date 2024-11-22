@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Blog } from './entities/blog.entity';
 import { In, Repository } from 'typeorm';
@@ -130,7 +134,7 @@ export class BlogsService {
     return this.blogRepository.save(originBlog);
   }
 
-  async deleteOne(id: number) {
+  async deleteOne(userId: number, id: number) {
     const blog = await this.blogRepository.findOne({
       where: { id },
       relations: ['tags'],
@@ -138,6 +142,10 @@ export class BlogsService {
 
     if (!blog) {
       throw new NotFoundException('博客未找到');
+    }
+
+    if (!userId || blog.user.id !== userId) {
+      throw new ForbiddenException('用户没有权限删除该博客');
     }
 
     // 删除博客实体

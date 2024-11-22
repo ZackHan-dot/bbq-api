@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Put, Param, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Put,
+  Param,
+  Query,
+  Req,
+} from '@nestjs/common';
 import { BlogsService } from './blogs.service';
 import { CreateBlogsDto } from './dto/blogs.dto';
 import { plainToInstance } from 'class-transformer';
@@ -55,8 +64,9 @@ export class BlogsController {
   }
 
   @Post('/delete')
-  async deleteOne(@Body('id') id: number) {
-    await this.blogsService.deleteOne(id);
+  async deleteOne(@Req() req, @Body('id') id: number) {
+    const { id: userId } = req.user || {};
+    await this.blogsService.deleteOne(userId, id);
     return { message: '删除成功' };
   }
 }
