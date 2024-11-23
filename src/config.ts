@@ -26,7 +26,7 @@ export const TypeOrmConfig: TypeOrmModuleOptions = {
 
 export const RedisConfig: RedisSingleOptions = {
   type: 'single',
-  url: 'redis://localhost:6379/1',
+  url: process.env.REDIS_URL,
 };
 
 export const AppConfig = {
