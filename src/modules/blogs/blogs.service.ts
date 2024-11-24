@@ -134,6 +134,13 @@ export class BlogsService {
     return this.blogRepository.save(originBlog);
   }
 
+  async findBySlug(slug: string) {
+    return await this.blogRepository.findOne({
+      where: { slug },
+      relations: ['tags', 'user'],
+    });
+  }
+
   async deleteOne(userId: number, id: number) {
     const blog = await this.blogRepository.findOne({
       where: { id },

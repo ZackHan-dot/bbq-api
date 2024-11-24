@@ -7,6 +7,8 @@ import {
   Param,
   Query,
   Req,
+  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { BlogsService } from './blogs.service';
 import { CreateBlogsDto } from './dto/blogs.dto';
@@ -14,11 +16,13 @@ import { plainToInstance } from 'class-transformer';
 import { QueryUserDto } from '../users/dto/query-user.dto';
 import { QueryBlogsDto } from './dto/query-blogs.dto';
 import { PageBlogParamsDto } from './dto/page-blog-params.dto';
+import { Public } from 'src/auth/public.decorator';
 
 @Controller('blogs')
 export class BlogsController {
   constructor(private readonly blogsService: BlogsService) {}
 
+  @Public()
   @Get()
   async findAll(@Query() pageBlogParamsDto: PageBlogParamsDto) {
     const blogs = await this.blogsService.findAll(pageBlogParamsDto);
@@ -30,6 +34,24 @@ export class BlogsController {
     });
     return { ...blogs, items: blogEntities };
   }
+
+  @Public()
+  @Get(':slug')
+  async findBySlug(@Param('slug') slug: string) {
+    if (!slug || !slug.trim()) {
+      throw new BadRequestException('slug参数不能为空');
+    }
+    const blog = await this.blogsService.findBySlug(slug);
+    if (!blog) {
+      throw new NotFoundException('该博客不存在');
+    }
+    const blogEntity = plainToInstance(QueryBlogsDto, {
+      ...blog,
+      user: plainToInstance(QueryUserDto, blog.user),
+    });
+    return blogEntity;
+  }
+
   @Get('/:userId')
   async findByUserId(
     @Param('userId') userId: number,
