@@ -18,7 +18,7 @@ export class BlogsService {
   ) {}
 
   async findBlogs(pageBlogParamsDto: PageBlogParamsDto, userId?: number) {
-    const { currentPage, limit, sortBy, sortOrder, tags, title } =
+    const { currentPage, limit, sortBy, sortOrder, tags, title, published } =
       pageBlogParamsDto;
     // 检查排序字段是否存在
     const validSortFields = ['createdAt', 'updatedAt'];
@@ -34,6 +34,9 @@ export class BlogsService {
     // 应用筛选条件
     if (title) {
       query.andWhere('blogs.title LIKE :title', { title: `%${title}%` });
+    }
+    if (published !== undefined) {
+      query.andWhere('blogs.published = :published', { published });
     }
     if (sortBy) {
       // 应用排序
