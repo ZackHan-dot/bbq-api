@@ -114,8 +114,21 @@ export class BlogsService {
    * @param updateBlogsDto 要更新的blog的Dto对象，与创建相同
    * @returns
    */
-  async update(id: number, updateBlogsDto: CreateBlogsDto) {
+  async update(userId: number, id: number, updateBlogsDto: CreateBlogsDto) {
     const { tags, ...blogData } = updateBlogsDto;
+    const originBlog = await this.blogRepository.findOne({
+      where: { id },
+      relations: ['tags', 'user'],
+    });
+
+    if (!originBlog) {
+      throw new NotFoundException('博客未找到');
+    }
+
+    if (!userId || originBlog.user.id !== userId) {
+      throw new ForbiddenException('用户没有权限更新该博客');
+    }
+
     const tagIds = tags || [];
     const existingTags = await this.tagRepository.find({
       where: { id: In(tagIds) },
@@ -124,13 +137,6 @@ export class BlogsService {
       throw new NotFoundException('部分标签没有找到');
     }
 
-    const originBlog = await this.blogRepository.findOne({
-      where: { id },
-      relations: ['tags'],
-    });
-    if (!originBlog) {
-      throw new NotFoundException('博客未找到');
-    }
     // 更新博客数据
     Object.assign(originBlog, blogData);
     originBlog.tags = existingTags;
@@ -147,7 +153,7 @@ export class BlogsService {
   async deleteOne(userId: number, id: number) {
     const blog = await this.blogRepository.findOne({
       where: { id },
-      relations: ['tags'],
+      relations: ['user'],
     });
 
     if (!blog) {

@@ -78,16 +78,18 @@ export class BlogsController {
 
   @Put('/update/:id')
   async update(
+    @Req() req,
     @Param('id') id: number,
     @Body() updateBlogsDto: CreateBlogsDto,
   ) {
-    await this.blogsService.update(id, updateBlogsDto);
+    const { userId } = req.user || {};
+    await this.blogsService.update(userId, id, updateBlogsDto);
     return { message: '更新博客成功' };
   }
 
   @Post('/delete')
   async deleteOne(@Req() req, @Body('id') id: number) {
-    const { id: userId } = req.user || {};
+    const { userId } = req.user || {};
     await this.blogsService.deleteOne(userId, id);
     return { message: '删除成功' };
   }
