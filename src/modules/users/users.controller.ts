@@ -7,7 +7,7 @@ import { password_hash } from 'src/util/bcrypt';
 import { RoleEnum } from '../roles/roles.enum';
 import { Roles } from '../roles/roles.decorator';
 import { UpdateUserRolesDto } from '../roles/dto/update-user-roles.dto';
-
+import { UpdateUserDto } from './dto/update-user.dto';
 interface RequestWithUser extends Request {
   user: {
     username: string;
@@ -49,5 +49,16 @@ export class UsersController {
   async updateUserRoles(@Body() updateUserRolesDto: UpdateUserRolesDto) {
     await this.usersService.updateUserRoles(updateUserRolesDto);
     return { message: '更新用户角色成功' };
+  }
+
+  @Put('update')
+  async updatePassword(
+    @Req() request: RequestWithUser,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    const { username } = request.user;
+    updateUserDto.password = await password_hash(updateUserDto.password);
+    await this.usersService.updateUserPassword(username, updateUserDto);
+    return { message: '更新用户密码成功' };
   }
 }

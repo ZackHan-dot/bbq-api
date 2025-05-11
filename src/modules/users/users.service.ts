@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { In, Repository } from 'typeorm';
@@ -8,6 +12,8 @@ import { RoleEnum } from 'src/modules/roles/roles.enum';
 import { UpdateUserRolesDto } from '../roles/dto/update-user-roles.dto';
 import { QueryRoleDto } from '../roles/dto/query-role.dto';
 import { plainToInstance, instanceToPlain } from 'class-transformer';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { comparePassword } from 'src/util/bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -79,6 +85,24 @@ export class UsersService {
       throw new NotFoundException('One or more roles not found');
     }
     user.roles = roles;
+    return await this.usersRepository.save(user);
+  }
+
+  async updateUserPassword(
+    username: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<User> {
+    const user = await this.usersRepository.findOneBy({ username });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (!(await comparePassword(updateUserDto.oldPassword, user.password))) {
+      throw new BadRequestException('Old password is incorrect');
+    }
+    if (!updateUserDto.password) {
+      throw new BadRequestException('Password is required');
+    }
+    user.password = updateUserDto.password;
     return await this.usersRepository.save(user);
   }
 }

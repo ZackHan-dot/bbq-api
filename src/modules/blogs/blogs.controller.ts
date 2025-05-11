@@ -17,6 +17,7 @@ import { QueryUserDto } from '../users/dto/query-user.dto';
 import { QueryBlogsDto } from './dto/query-blogs.dto';
 import { PageBlogParamsDto } from './dto/page-blog-params.dto';
 import { Public } from 'src/auth/public.decorator';
+import { isEmpty } from 'class-validator';
 
 @Controller('blogs')
 export class BlogsController {
@@ -92,5 +93,21 @@ export class BlogsController {
     const { userId } = req.user || {};
     await this.blogsService.deleteOne(userId, id);
     return { message: '删除成功' };
+  }
+
+  @Get('/detail/:id')
+  async detail(@Param('id') id: number) {
+    if (isEmpty(id)) {
+      throw new BadRequestException('查询文章ID不能为空');
+    }
+    const blog = await this.blogsService.findById(id);
+    if (!blog) {
+      throw new NotFoundException('该博客不存在');
+    }
+    const blogEntity = plainToInstance(QueryBlogsDto, {
+      ...blog,
+      user: plainToInstance(QueryUserDto, blog.user),
+    });
+    return blogEntity;
   }
 }

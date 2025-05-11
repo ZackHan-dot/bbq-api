@@ -150,6 +150,13 @@ export class BlogsService {
     });
   }
 
+  async findById(id: number) {
+    return await this.blogRepository.findOne({
+      where: { id },
+      relations: ['tags', 'user'],
+    });
+  }
+
   async deleteOne(userId: number, id: number) {
     const blog = await this.blogRepository.findOne({
       where: { id },
